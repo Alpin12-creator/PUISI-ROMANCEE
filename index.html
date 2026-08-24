@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesin Capit Bola Kenangan - Fixed Pile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            padding-bottom: 110px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hearts-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .heart-bubble {
+            position: absolute;
+            bottom: -50px;
+            color: rgba(255, 105, 180, 0.6);
+            font-size: 20px;
+            animation: floatUp 8s linear infinite;
+            filter: drop-shadow(0 2px 5px rgba(255, 182, 193, 0.5));
+            user-select: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-110vh) rotate(360deg) scale(1.3); opacity: 0; }
+        }
+
+        h1 {
+            color: #d81b60;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            text-align: center;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .machine {
+            width: 320px;
+            height: 380px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 8px solid #ff4081;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(216, 27, 96, 0.2);
+            backdrop-filter: blur(8px);
+            z-index: 1;
+        }
+
+        .crane-rail {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 10px;
+            background: #555;
+            z-index: 60;
+        }
+
+        .crane-assembly {
+            position: absolute;
+            top: 0; 
+            left: 160px;
+            transform: translateX(-50%);
+            transition: left 1.5s ease-in-out;
+            z-index: 50;
+            transform-origin: top center;
+        }
+
+        .crane-assembly.manual-move {
+            transition: left 0.1s linear;
+        }
+
+        .crane-assembly.swaying {
+            animation: clawInertiaSway 0.8s ease-out;
+        }
+
+        @keyframes clawInertiaSway {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            20% { transform: translateX(-50%) rotate(var(--sway-angle, 6deg)); }
+            40% { transform: translateX(-50%) rotate(calc(var(--sway-angle, 6deg) * -0.6)); }
+            60% { transform: translateX(-50%) rotate(calc(var(--sway-angle, 6deg) * 0.3)); }
+            80% { transform: translateX(-50%) rotate(calc(var(--sway-angle, 6deg) * -0.1)); }
+            100% { transform: translateX(-50%) rotate(0deg); }
+        }
+
+        .rope {
+            width: 4px; height: 30px;
+            background: #444;
+            margin: 0 auto;
+            transition: height 1.2s ease-in-out;
+            position: relative;
+        }
+
+        .claw-head {
+            width: 16px; height: 12px;
+            background: #333;
+            border-radius: 4px;
+            position: absolute;
+            bottom: -8px; left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .claw-arm {
+            width: 18px; height: 24px;
+            border: 3px solid #333;
+            position: absolute; top: 6px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .claw-arm.left {
+            border-right: none; border-top: none;
+            border-radius: 0 0 0 12px;
+            left: -10px;
+            transform-origin: top right;
+            transform: rotate(-15deg);
+        }
+
+        .claw-arm.right {
+            border-left: none; border-top: none;
+            border-radius: 0 0 12px 0;
+            right: -10px;
+            transform-origin: top left;
+            transform: rotate(15deg);
+        }
+
+        .crane-assembly.open .claw-arm.left { transform: rotate(-35deg); }
+        .crane-assembly.open .claw-arm.right { transform: rotate(35deg); }
+        .crane-assembly.grab .claw-arm.left { transform: rotate(5deg); }
+        .crane-assembly.grab .claw-arm.right { transform: rotate(-5deg); }
+
+        .prizes-area {
+            position: absolute;
+            bottom: 10px; width: 100%; height: 240px;
+        }
+
+        .gacha-ball {
+            width: 44px; 
+            height: 44px;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2), inset 0 -6px 8px rgba(0,0,0,0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 1.5s ease-in-out, bottom 1.2s ease-in-out, opacity 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .gacha-ball.falling {
+            transition: bottom 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) !important;
+        }
+
+        .gacha-ball-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 50%;
+            transform: rotate(var(--ball-rotation, 0deg));
+        }
+
+        .gacha-ball::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 6px;
+            width: 16px; height: 9px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            transform: rotate(-25deg);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .gacha-ball-inner::after {
+            content: ''; 
+            position: absolute;
+            width: 100%; height: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            top: 50%; transform: translateY(-50%);
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .gacha-ball-center-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px; height: 10px;
+            background: #ffffff;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            z-index: 4;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .gacha-ball:hover {
+            transform: scale(1.15) translateY(-4px) !important;
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.5), inset 0 -6px 8px rgba(0,0,0,0.2);
+            z-index: 99 !important;
+        }
+
+        .gacha-ball.ssr {
+            box-shadow: 0 0 15px #ffd700, inset 0 -6px 10px rgba(184, 134, 11, 0.4);
+            border: 2px solid #fff;
+            animation: ssrGlow 1.8s infinite alternate ease-in-out;
+        }
+
+        @keyframes ssrGlow {
+            0% { filter: drop-shadow(0 0 3px #ffd700); }
+            100% { filter: drop-shadow(0 0 10px #ff9100); }
+        }
+
+        .gacha-ball.lifted {
+            animation: ballSway 0.6s infinite alternate ease-in-out !important;
+        }
+
+        @keyframes ballSway {
+            0% { transform: scale(1.08) rotate(-5deg); }
+            100% { transform: scale(1.08) rotate(5deg); }
+        }
+
+        .arcade-controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 320px;
+            z-index: 1;
+        }
+
+        .joystick-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.1), 0 4px 15px rgba(0,0,0,0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .joystick-base {
+            width: 70px; height: 70px;
+            background: radial-gradient(circle, #333 0%, #111 80%);
+            border-radius: 50%;
+            border: 3px solid #555;
+            position: relative;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.8), 0 3px 6px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+            touch-action: none; user-select: none;
+        }
+
+        .joystick-stick {
+            width: 36px; height: 36px;
+            background: radial-gradient(circle at 35% 35%, #ff7675, #d63031);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 2px 3px rgba(255,255,255,0.4);
+            cursor: grab;
+            transition: transform 0.05s ease-out;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .joystick-stick:active { cursor: grabbing; }
+
+        .analog-arrows {
+            position: absolute; width: 100%;
+            display: flex; justify-content: space-between;
+            padding: 0 5px; color: rgba(255, 255, 255, 0.4);
+            font-size: 0.65rem; pointer-events: none;
+        }
+
+        .btn-action-drop {
+            width: 70px; height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ff4081, #c2185b);
+            color: white; border: 3px solid #ff80ab;
+            font-size: 0.75rem; font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4), inset 0 -3px 4px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            user-select: none; touch-action: manipulation;
+        }
+
+        .btn-action-drop:active {
+            transform: scale(0.92);
+            box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4), inset 0 2px 3px rgba(0,0,0,0.4);
+        }
+
+        .btn-action-drop:disabled, .joystick-base.disabled {
+            opacity: 0.5; pointer-events: none;
+        }
+
+        .btn-reply {
+            width: 100%; background: #25d366; color: white;
+            border: none; padding: 10px; font-size: 0.9rem; font-weight: bold;
+            border-radius: 15px; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+            transition: 0.2s;
+        }
+
+        .btn-reset-balls {
+            position: fixed; top: 15px; right: 15px;
+            background: #ff7675; color: white; border: none;
+            padding: 10px 16px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 118, 117, 0.4);
+            z-index: 99; transition: 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .btn-reset-balls:hover {
+            transform: scale(1.05);
+            background: #d63031;
+        }
+
+        .btn-edit-toggle {
+            position: fixed; bottom: 15px; right: 15px;
+            background: #6c5ce7; color: white; border: none;
+            padding: 10px 18px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+            z-index: 99; transition: 0.2s;
+        }
+
+        .music-player-widget {
+            position: fixed; bottom: 15px; left: 15px; z-index: 99;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 105, 180, 0.5);
+            border-radius: 25px; padding: 8px 16px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 8px 25px rgba(216, 27, 96, 0.2);
+            max-width: 280px; transition: all 0.3s ease;
+        }
+
+        .music-disc {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #ff4081, #7c4dff);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(255, 64, 129, 0.4);
+            flex-shrink: 0; animation: spinDisc 4s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .music-player-widget.playing .music-disc {
+            animation-play-state: running;
+        }
+
+        @keyframes spinDisc { 100% { transform: rotate(360deg); } }
+
+        .music-info {
+            flex-grow: 1; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .music-title {
+            font-size: 0.75rem; font-weight: 700; color: #d81b60;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .music-subtitle {
+            font-size: 0.65rem; color: #666;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .btn-play-pause {
+            background: #ff4081; color: white; border: none;
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 0.8rem;
+            box-shadow: 0 2px 6px rgba(255, 64, 129, 0.3);
+            transition: transform 0.1s; flex-shrink: 0;
+        }
+
+        .btn-play-pause:active { transform: scale(0.9); }
+
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65);
+            justify-content: center; align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white; padding: 20px;
+            border-radius: 20px; text-align: center;
+            max-width: 90%; width: 360px; max-height: 85vh;
+            overflow-y: auto;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid #ff4081; position: relative;
+        }
+
+        .modal-content img {
+            width: 100%; height: 240px; object-fit: cover;
+            border-radius: 16px; margin: 12px 0;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            border: 2px solid #f8bbd0;
+        }
+
+        .modal-content p {
+            color: #d81b60; font-weight: 600; font-size: 0.95rem;
+            line-height: 1.4; margin-bottom: 15px;
+        }
+
+        .rarity-badge {
+            display: inline-block; padding: 5px 14px;
+            border-radius: 20px; font-size: 0.85rem; font-weight: 800;
+            color: white; margin-top: 5px; letter-spacing: 1px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .badge-r { background: #3498db; }
+        .badge-sr { background: #9b59b6; }
+        .badge-ssr { 
+            background: linear-gradient(45deg, #ffb703, #fb8500, #ffd700);
+            color: #fff; animation: pulseGlow 1.5s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); box-shadow: 0 0 5px #ffd700; }
+            100% { transform: scale(1.1); box-shadow: 0 0 15px #ffd700; }
+        }
+
+        .btn-close {
+            background: #ff4081; color: white; border: none;
+            padding: 10px 24px; border-radius: 15px;
+            font-size: 0.9rem; font-weight: bold; cursor: pointer;
+        }
+
+        .editor-modal-content {
+            width: 95%; max-width: 480px; text-align: left; border-color: #6c5ce7;
+        }
+
+        .editor-modal-content h3 {
+            color: #6c5ce7; font-size: 1.1rem; margin-bottom: 15px; text-align: center;
+        }
+
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label {
+            font-size: 0.8rem; font-weight: bold; color: #444;
+            display: block; margin-bottom: 4px;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 8px 10px; border: 1px solid #ccc;
+            border-radius: 8px; font-size: 0.85rem; outline: none; background: #f9f9f9;
+        }
+
+        .editor-item-card {
+            background: #f0f3ff; border: 1px solid #d0d7de;
+            border-radius: 10px; padding: 10px; margin-bottom: 10px;
+            position: relative;
+        }
+
+        .btn-delete-item {
+            position: absolute; top: 8px; right: 8px;
+            background: #ff4757; color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%;
+            cursor: pointer; font-weight: bold; font-size: 0.75rem;
+        }
+
+        .btn-add-item {
+            background: #2ed573; color: white; border: none;
+            padding: 8px 15px; border-radius: 8px; font-weight: bold;
+            font-size: 0.8rem; cursor: pointer; width: 100%; margin-bottom: 15px;
+        }
+
+        .btn-save-config {
+            background: #6c5ce7; color: white; border: none;
+            padding: 10px; border-radius: 10px; font-weight: bold;
+            font-size: 0.9rem; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+
+        .btn-reset-config {
+            background: transparent; color: #888; border: none;
+            font-size: 0.75rem; cursor: pointer; text-decoration: underline;
+            width: 100%; text-align: center; margin-top: 8px;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <button class="btn-reset-balls" onclick="resetBalls()">🔄 Reset Bola</button>
+
+    <h1 id="mainTitle">🔮 Mesin Capit Bola Kenangan 🔮</h1>
+
+    <div class="machine">
+        <div class="crane-rail"></div>
+        <div class="crane-assembly" id="craneAssembly">
+            <div class="rope" id="rope">
+                <div class="claw-head">
+                    <div class="claw-arm left"></div>
+                    <div class="claw-arm right"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prizes-area" id="prizesArea"></div>
+    </div>
+
+    <div class="arcade-controls">
+        <div class="joystick-panel">
+            <div class="joystick-base" id="joystickBase">
+                <div class="analog-arrows">
+                    <span>◀</span>
+                    <span>▶</span>
+                </div>
+                <div class="joystick-stick" id="joystickStick"></div>
+            </div>
+
+            <button class="btn-action-drop" id="dropBtn" onclick="dropClaw()">
+                <span style="font-size: 1.1rem;">🎯</span>
+                <span>CAPIT!</span>
+            </button>
+        </div>
+        
+        <button class="btn-reply" onclick="openReplyModal()">💬 Kirim Balasan Pesan</button>
+    </div>
+
+    <div class="music-player-widget" id="musicWidget">
+        <div class="music-disc" id="musicDisc">🎵</div>
+        <div class="music-info">
+            <div class="music-title" id="musicTitleText">Musik Latar</div>
+            <div class="music-subtitle" id="musicSubtext">Memutar Musik...</div>
+        </div>
+        <button class="btn-play-pause" id="btnPlayPause" onclick="toggleAudioPlay()">▶</button>
+    </div>
+    <div id="hiddenAudioContainer" style="display:none;"></div>
+
+    <button class="btn-edit-toggle" onclick="openEditorModal()">⚙️ Edit Konten</button>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <div style="font-size: 1.5rem;">🎁✨</div>
+            <div id="rarityBadgeContainer"></div>
+            <img id="wonImage" src="" alt="Foto Kenangan">
+            <p id="wonText"></p>
+            <button class="btn-close" onclick="closeModal('resultModal')">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal Notifikasi Gagal Capit -->
+    <div class="modal" id="failModal">
+        <div class="modal-content" style="border-color: #ff4757;">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">💔 Aww!</div>
+            <p id="failModalText" style="color: #ff4757; font-size: 1.1rem; font-weight: bold;"></p>
+            <button class="btn-close" style="background: #ff4757;" onclick="closeModal('failModal')">Coba Lagi 🎯</button>
+        </div>
+    </div>
+
+    <div class="modal" id="replyModal">
+        <div class="modal-content">
+            <h3 style="color: #d81b60; font-size: 1rem; margin-bottom: 15px;">💌 Kirim Pesan ke Kreator</h3>
+            <div class="form-group">
+                <label>Nama Pengirim:</label>
+                <input type="text" id="senderName" placeholder="Masukkan nama kamu...">
+            </div>
+            <div class="form-group">
+                <label>Isi Balasan / Pesan:</label>
+                <textarea id="messageText" rows="3" placeholder="Tulis pesan kamu di sini..."></textarea>
+            </div>
+            <button class="btn-reply" style="width:100%; margin-bottom: 10px;" onclick="sendToWhatsApp()">💬 Kirim via WA</button>
+            <button class="btn-close" style="background:transparent; color:#888; text-decoration:underline;" onclick="closeModal('replyModal')">Batal</button>
+        </div>
+    </div>
+
+    <div class="modal" id="editorModal">
+        <div class="modal-content editor-modal-content">
+            <h3>⚙️ Panel Editor Konten</h3>
+            
+            <div class="form-group">
+                <label>Judul Utama Mesin:</label>
+                <input type="text" id="editTitle">
+            </div>
+
+            <!-- PERUBAHAN: Field untuk mengubah pesan gagal -->
+            <div class="form-group">
+                <label>Pesan Saat Capitan Gagal / Jatuh:</label>
+                <input type="text" id="editFailMessage">
+            </div>
+
+            <div class="form-group">
+                <label>Nomor WhatsApp (Contoh: 628123456789):</label>
+                <input type="text" id="editWA">
+            </div>
+
+            <div class="form-group">
+                <label>Pilih Musik Bawaan:</label>
+                <select id="presetSongSelect" onchange="applyPresetSong(this.value)">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Atau URL Musik Manual (Spotify / YouTube / MP3):</label>
+                <input type="text" id="editMusicUrl" placeholder="https://...">
+            </div>
+
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+            <h4 style="font-size: 0.9rem; color: #444; margin-bottom: 10px;">Daftar Item Bola Gacha:</h4>
+            
+            <div id="editorItemsContainer"></div>
+
+            <button class="btn-add-item" onclick="addNewEditorItem()">+ Tambah Item Baru</button>
+            <button class="btn-save-config" onclick="saveConfiguration()">💾 Simpan & Perbarui Mesin</button>
+            <button class="btn-reset-config" onclick="resetToDefaultConfig()">Reset ke Pengaturan Awal</button>
+            <button class="btn-close" style="width:100%; margin-top:10px; background:#888;" onclick="closeModal('editorModal')">Tutup Editor</button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_CONFIG = {
+            judul: "🔮 Mesin Capit Bola Kenangan 🔮",
+            pesanGagal: "Capitan meleset! Bolanya jatuh lagi, harus pаs di tengah ya! 💔",
+            nomorWA: "62895374428050",
+            musicUrl: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
+            items: [
+                { rarity: "R", color: "#00c6ff", photo: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600", text: "1. Senyuman favoritku setiap harinya! ✨" },
+                { rarity: "R", color: "#00f2fe", photo: "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=600", text: "2. Hari di mana kita tertawa sampai perut sakit! 😄" },
+                { rarity: "SR", color: "#ff758c", photo: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=600", text: "3. Terima kasih sudah selalu sabar bersamaku. 💕" },
+                { rarity: "SSR", color: "#ffb703", photo: "https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600", text: "4. Momen pertama kali kita jalan bareng! ❤️ (SSR EDITION)" }
+            ]
+        };
+
+        const PRESET_SONGS = [
+            { name: "-- Pilih Lagu Bawaan --", url: "" },
+            { name: "Lofi Relaxing Music (Instrumental)", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+            { name: "Romantic Piano (Instrumental)", url: "https://cdn.pixabay.com/audio/2021/09/06/audio_8f4f09d850.mp3" }
+        ];
+
+        let currentConfig = JSON.parse(localStorage.getItem('gacha_config')) || DEFAULT_CONFIG;
+        if (!currentConfig.pesanGagal) {
+            currentConfig.pesanGagal = DEFAULT_CONFIG.pesanGagal;
+        }
+
+        let ballPositionsCache = [];
+        let takenBalls = new Set();
+
+        const prizesArea = document.getElementById('prizesArea');
+        const craneAssembly = document.getElementById('craneAssembly');
+        const rope = document.getElementById('rope');
+        const dropBtn = document.getElementById('dropBtn');
+        const joystickBase = document.getElementById('joystickBase');
+        const joystickStick = document.getElementById('joystickStick');
+
+        let clawX = 160;
+        let isOperating = false;
+        let analogInterval = null;
+        let analogDirection = 0;
+        let lastDirection = 0;
+        let currentAudioObj = null;
+
+        function initApp() {
+            document.getElementById('mainTitle').innerText = currentConfig.judul;
+            createHeartBubbles();
+
+            if (ballPositionsCache.length === 0 || ballPositionsCache.length !== currentConfig.items.length) {
+                generateNeatPilePositions();
+            }
+
+            renderStackedBalls();
+            setClawPosition(160);
+            initJoystick();
+            initAudioPlayer();
+        }
+
+        function resetBalls() {
+            if (isOperating) return;
+            takenBalls.clear();
+            renderStackedBalls();
+        }
+
+        function generateNeatPilePositions() {
+            const count = currentConfig.items.length;
+            ballPositionsCache = [];
+
+            const numColumns = 6;
+            const columnWidth = 46;
+            const startX = 12;
+
+            for (let i = 0; i < count; i++) {
+                const row = Math.floor(i / numColumns);
+                const col = i % numColumns;
+
+                const offsetX = (Math.random() * 6) - 3;
+                const offsetY = (Math.random() * 4) - 2;
+
+                const left = Math.round(startX + (col * columnWidth) + offsetX);
+                const bottom = Math.round(8 + (row * 36) + offsetY);
+                const rotation = Math.floor(Math.random() * 90) - 45;
+
+                const zIndex = (row * 10) + col + 1;
+
+                ballPositionsCache.push({ left, bottom, rotation, zIndex, col, row });
+            }
+        }
+
+        function setClawPosition(pos) {
+            clawX = Math.max(30, Math.min(290, pos));
+            craneAssembly.style.left = `${clawX}px`;
+        }
+
+        function triggerClawSway(direction) {
+            craneAssembly.classList.remove('swaying');
+            const angle = direction > 0 ? 7 : (direction < 0 ? -7 : 5);
+            craneAssembly.style.setProperty('--sway-angle', `${angle}deg`);
+            void craneAssembly.offsetWidth; 
+            craneAssembly.classList.add('swaying');
+        }
+
+        function initJoystick() {
+            let isDragging = false;
+            let startX = 0;
+            const maxRadius = 18;
+
+            function handleStart(e) {
+                if (isOperating) return;
+                isDragging = true;
+                craneAssembly.classList.add('manual-move');
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                startX = clientX;
+                craneAssembly.classList.remove('swaying');
+            }
+
+            function handleMove(e) {
+                if (!isDragging || isOperating) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                let deltaX = clientX - startX;
+
+                deltaX = Math.max(-maxRadius, Math.min(maxRadius, deltaX));
+                joystickStick.style.transform = `translateX(${deltaX}px)`;
+
+                if (deltaX < -3) {
+                    analogDirection = deltaX / maxRadius;
+                    lastDirection = -1;
+                } else if (deltaX > 3) {
+                    analogDirection = deltaX / maxRadius;
+                    lastDirection = 1;
+                } else {
+                    analogDirection = 0;
+                }
+
+                if (analogDirection !== 0 && !analogInterval) {
+                    analogInterval = setInterval(() => {
+                        setClawPosition(clawX + analogDirection * 2.2);
+                    }, 25);
+                } else if (analogDirection === 0 && analogInterval) {
+                    clearInterval(analogInterval);
+                    analogInterval = null;
+                }
+            }
+
+            function handleEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                craneAssembly.classList.remove('manual-move');
+                joystickStick.style.transform = `translateX(0px)`;
+                
+                if (analogDirection !== 0 || lastDirection !== 0) {
+                    triggerClawSway(lastDirection);
+                }
+
+                analogDirection = 0;
+                if (analogInterval) {
+                    clearInterval(analogInterval);
+                    analogInterval = null;
+                }
+            }
+
+            joystickBase.addEventListener('mousedown', handleStart);
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+
+            joystickBase.addEventListener('touchstart', handleStart);
+            window.addEventListener('touchmove', handleMove);
+            window.addEventListener('touchend', handleEnd);
+        }
+
+        function createHeartBubbles() {
+            const container = document.getElementById('heartsContainer');
+            container.innerHTML = '';
+            const heartIcons = ['💖', '💗', '💕', '🌸', '✨', '❤️'];
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart-bubble');
+                heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+                heart.style.left = `${Math.random() * 100}%`;
+                heart.style.fontSize = `${16 + Math.random() * 20}px`;
+                heart.style.animationDuration = `${6 + Math.random() * 6}s`;
+                heart.style.animationDelay = `${Math.random() * 8}s`;
+                container.appendChild(heart);
+            }
+        }
+
+        function renderStackedBalls() {
+            prizesArea.innerHTML = '';
+            currentConfig.items.forEach((item, index) => {
+                if (takenBalls.has(index)) return;
+
+                const pos = ballPositionsCache[index] || { left: 100, bottom: 10, rotation: 0, zIndex: 1 };
+                
+                const ball = document.createElement('div');
+                ball.classList.add('gacha-ball');
+                if (item.rarity === 'SSR') ball.classList.add('ssr');
+
+                ball.style.background = `radial-gradient(circle at 35% 30%, #ffffff 0%, ${item.color} 55%, #111111 120%)`;
+                ball.style.left = `${pos.left}px`;
+                ball.style.bottom = `${pos.bottom}px`;
+                ball.style.zIndex = pos.zIndex;
+                ball.id = `ball-${index}`;
+
+                const inner = document.createElement('div');
+                inner.classList.add('gacha-ball-inner');
+                inner.style.setProperty('--ball-rotation', `${pos.rotation}deg`);
+
+                const centerBtn = document.createElement('div');
+                centerBtn.classList.add('gacha-ball-center-btn');
+                
+                inner.appendChild(centerBtn);
+                ball.appendChild(inner);
+                prizesArea.appendChild(ball);
+            });
+        }
+
+        /* PERUBAHAN: Logika Capitan Presisi & Terjatuh */
+        function dropClaw() {
+            if (isOperating) return;
+            
+            if (takenBalls.size >= currentConfig.items.length) {
+                alert("Semua bola sudah terambil! Silakan tekan tombol 'Reset Bola' di kanan atas.");
+                return;
+            }
+
+            if (currentConfig.items.length === 0) {
+                alert("Belum ada item di dalam mesin!");
+                return;
+            }
+
+            isOperating = true;
+            toggleControls(true);
+            craneAssembly.classList.remove('manual-move');
+            craneAssembly.classList.remove('swaying');
+
+            let closestIndex = -1;
+            let highestZ = -1;
+            let targetDistance = 999;
+
+            currentConfig.items.forEach((item, index) => {
+                if (takenBalls.has(index)) return;
+
+                const pos = ballPositionsCache[index];
+                if (!pos) return;
+                
+                const ballCenterX = pos.left + 22;
+                const distance = Math.abs(clawX - ballCenterX);
+
+                // Bola yang paling atas dan berjarak < 35px yang terdeteksi
+                if (distance < 35) {
+                    if (pos.zIndex > highestZ) {
+                        highestZ = pos.zIndex;
+                        closestIndex = index;
+                        targetDistance = distance;
+                    }
+                }
+            });
+
+            const targetBall = (closestIndex !== -1) ? document.getElementById(`ball-${closestIndex}`) : null;
+            const targetPos = (closestIndex !== -1 && ballPositionsCache[closestIndex]) ? ballPositionsCache[closestIndex] : { bottom: 10 };
+            
+            // Jarak presisi: toleransi < 12px dianggap pas di tengah (berhasil)
+            const isPreciseHit = targetDistance < 12;
+            const dropDepth = targetBall ? (320 - (targetPos.bottom + 44)) : 280;
+
+            craneAssembly.classList.add('open');
+
+            setTimeout(() => {
+                rope.style.height = `${dropDepth}px`;
+
+                setTimeout(() => {
+                    craneAssembly.classList.remove('open');
+                    craneAssembly.classList.add('grab');
+
+                    if (targetBall) {
+                        targetBall.classList.add('lifted');
+                        targetBall.style.zIndex = "90";
+                    }
+
+                    setTimeout(() => {
+                        rope.style.height = "30px";
+                        
+                        if (targetBall) {
+                            if (isPreciseHit) {
+                                // TERANGKAT SEMPURNA
+                                targetBall.style.bottom = `${320 - 30 - 36}px`;
+
+                                setTimeout(() => {
+                                    setClawPosition(160);
+                                    triggerClawSway(-1);
+                                    targetBall.style.left = "138px";
+                                    
+                                    setTimeout(() => {
+                                        takenBalls.add(closestIndex);
+                                        const wonItem = currentConfig.items[closestIndex];
+                                        document.getElementById('wonImage').src = wonItem.photo;
+                                        document.getElementById('wonText').innerText = wonItem.text;
+
+                                        const badgeContainer = document.getElementById('rarityBadgeContainer');
+                                        badgeContainer.innerHTML = `<span class="rarity-badge badge-${wonItem.rarity.toLowerCase()}">RARITY: ${wonItem.rarity}</span>`;
+
+                                        document.getElementById('resultModal').style.display = "flex";
+
+                                        craneAssembly.classList.remove('grab');
+                                        renderStackedBalls();
+                                        isOperating = false;
+                                        toggleControls(false);
+                                    }, 1600);
+                                }, 1300);
+
+                            } else {
+                                // TERJATUH DI TENGAH JALAN (Gagal karena kena samping)
+                                const halfLiftHeight = targetPos.bottom + 80;
+                                targetBall.style.bottom = `${halfLiftHeight}px`;
+
+                                setTimeout(() => {
+                                    // Lepas capit & jatuhkan bola kembali
+                                    craneAssembly.classList.remove('grab');
+                                    craneAssembly.classList.add('open');
+                                    
+                                    targetBall.classList.remove('lifted');
+                                    targetBall.classList.add('falling');
+                                    targetBall.style.bottom = `${targetPos.bottom}px`;
+
+                                    setTimeout(() => {
+                                        targetBall.classList.remove('falling');
+                                        craneAssembly.classList.remove('open');
+                                        
+                                        // Tampilkan Modal Pesan Gagal Kustom
+                                        document.getElementById('failModalText').innerText = currentConfig.pesanGagal || DEFAULT_CONFIG.pesanGagal;
+                                        document.getElementById('failModal').style.display = "flex";
+
+                                        renderStackedBalls();
+                                        isOperating = false;
+                                        toggleControls(false);
+                                    }, 600);
+
+                                }, 600);
+                            }
+                        } else {
+                            // TIDAK KENA SAMA SEKALI
+                            setTimeout(() => {
+                                craneAssembly.classList.remove('grab');
+                                document.getElementById('failModalText').innerText = currentConfig.pesanGagal || DEFAULT_CONFIG.pesanGagal;
+                                document.getElementById('failModal').style.display = "flex";
+
+                                isOperating = false;
+                                toggleControls(false);
+                            }, 400);
+                        }
+
+                    }, 500);
+
+                }, 1200);
+
+            }, 400);
+        }
+
+        function toggleControls(disabled) {
+            dropBtn.disabled = disabled;
+            if (disabled) {
+                joystickBase.classList.add('disabled');
+            } else {
+                joystickBase.classList.remove('disabled');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        function openReplyModal() {
+            document.getElementById('replyModal').style.display = "flex";
+        }
+
+        function sendToWhatsApp() {
+            const name = document.getElementById('senderName').value.trim();
+            const msg = document.getElementById('messageText').value.trim();
+
+            if (!name || !msg) {
+                alert("Harap isi nama dan pesan Anda!");
+                return;
+            }
+
+            const formattedMsg = `Halo! Saya ${name} ingin menyampaikan pesan:\n\n"${msg}"`;
+            const waUrl = `https://wa.me/${currentConfig.nomorWA}?text=${encodeURIComponent(formattedMsg)}`;
+            window.open(waUrl, '_blank');
+            closeModal('replyModal');
+        }
+
+        function initAudioPlayer() {
+            const hiddenContainer = document.getElementById('hiddenAudioContainer');
+            const widget = document.getElementById('musicWidget');
+            const titleEl = document.getElementById('musicTitleText');
+            const subtextEl = document.getElementById('musicSubtext');
+            const btnPlay = document.getElementById('btnPlayPause');
+            const url = currentConfig.musicUrl || '';
+
+            hiddenContainer.innerHTML = '';
+            if (currentAudioObj) {
+                currentAudioObj.pause();
+                currentAudioObj = null;
+            }
+
+            if (!url) {
+                widget.style.display = 'none';
+                return;
+            }
+
+            widget.style.display = 'flex';
+
+            const presetMatched = PRESET_SONGS.find(s => s.url === url);
+            let songTitle = presetMatched ? presetMatched.name.replace(/^--\s*|\s*--$/g, '') : "Background Music";
+            if (songTitle.includes('-')) {
+                const parts = songTitle.split('-');
+                titleEl.innerText = parts[0].trim();
+                subtextEl.innerText = parts[1].trim();
+            } else {
+                titleEl.innerText = songTitle;
+                subtextEl.innerText = "Musik Latar";
+            }
+
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                let videoId = '';
+                if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1].split('?')[0];
+                } else if (url.includes('v=')) {
+                    videoId = url.split('v=')[1].split('&')[0];
+                }
+                if (videoId) {
+                    hiddenContainer.innerHTML = `<iframe id="ytIframe" width="1" height="1" src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&loop=1&playlist=${videoId}" frameborder="0" allow="autoplay"></iframe>`;
+                }
+                btnPlay.innerText = "▶";
+                widget.classList.add('playing');
+                subtextEl.innerText = "YouTube Audio";
+            } else {
+                const audio = new Audio(url);
+                audio.loop = true;
+                currentAudioObj = audio;
+
+                audio.play().then(() => {
+                    widget.classList.add('playing');
+                    btnPlay.innerText = "❚❚";
+                }).catch(() => {
+                    widget.classList.remove('playing');
+                    btnPlay.innerText = "▶";
+                    subtextEl.innerText = "Klik Play";
+                });
+
+                audio.onplay = () => {
+                    widget.classList.add('playing');
+                    btnPlay.innerText = "❚❚";
+                };
+                audio.onpause = () => {
+                    widget.classList.remove('playing');
+                    btnPlay.innerText = "▶";
+                };
+            }
+        }
+
+        function toggleAudioPlay() {
+            const widget = document.getElementById('musicWidget');
+            const btnPlay = document.getElementById('btnPlayPause');
+
+            if (currentAudioObj) {
+                if (currentAudioObj.paused) {
+                    currentAudioObj.play();
+                } else {
+                    currentAudioObj.pause();
+                }
+            } else {
+                if (widget.classList.contains('playing')) {
+                    widget.classList.remove('playing');
+                    btnPlay.innerText = "▶";
+                } else {
+                    widget.classList.add('playing');
+                    btnPlay.innerText = "❚❚";
+                }
+            }
+        }
+
+        function populatePresetSongs() {
+            const selectPreset = document.getElementById('presetSongSelect');
+            if (!selectPreset) return;
+
+            selectPreset.innerHTML = '';
+            PRESET_SONGS.forEach(song => {
+                const opt = document.createElement('option');
+                opt.value = song.url;
+                opt.textContent = song.name;
+                selectPreset.appendChild(opt);
+            });
+
+            const matchedSong = PRESET_SONGS.find(s => s.url === currentConfig.musicUrl);
+            if (matchedSong) {
+                selectPreset.value = matchedSong.url;
+            }
+        }
+
+        function applyPresetSong(selectedUrl) {
+            if (selectedUrl) {
+                document.getElementById('editMusicUrl').value = selectedUrl;
+            }
+        }
+
+        function openEditorModal() {
+            document.getElementById('editTitle').value = currentConfig.judul;
+            document.getElementById('editFailMessage').value = currentConfig.pesanGagal || DEFAULT_CONFIG.pesanGagal;
+            document.getElementById('editWA').value = currentConfig.nomorWA;
+            document.getElementById('editMusicUrl').value = currentConfig.musicUrl || '';
+
+            populatePresetSongs();
+            renderEditorItemsList();
+            document.getElementById('editorModal').style.display = "flex";
+        }
+
+        function renderEditorItemsList() {
+            const container = document.getElementById('editorItemsContainer');
+            container.innerHTML = '';
+            currentConfig.items.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.classList.add('editor-item-card');
+                card.innerHTML = `
+                    <button class="btn-delete-item" onclick="removeEditorItem(${index})">✕</button>
+                    <div class="form-group">
+                        <label>Teks Pesan:</label>
+                        <input type="text" value="${item.text}" onchange="updateEditorItem(${index}, 'text', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>URL Foto (Gambar):</label>
+                        <input type="text" value="${item.photo}" onchange="updateEditorItem(${index}, 'photo', this.value)">
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label>Rarity:</label>
+                            <select onchange="updateEditorItem(${index}, 'rarity', this.value)">
+                                <option value="R" ${item.rarity === 'R' ? 'selected' : ''}>R (Rare)</option>
+                                <option value="SR" ${item.rarity === 'SR' ? 'selected' : ''}>SR (Super Rare)</option>
+                                <option value="SSR" ${item.rarity === 'SSR' ? 'selected' : ''}>SSR (Special)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Warna Bola:</label>
+                            <input type="color" value="${item.color}" style="height:35px; padding:2px;" onchange="updateEditorItem(${index}, 'color', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateEditorItem(index, field, value) {
+            currentConfig.items[index][field] = value;
+        }
+
+        function addNewEditorItem() {
+            currentConfig.items.push({
+                rarity: "R",
+                color: "#ff7675",
+                photo: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600",
+                text: "Kenangan baru..."
+            });
+            renderEditorItemsList();
+        }
+
+        function removeEditorItem(index) {
+            currentConfig.items.splice(index, 1);
+            takenBalls.delete(index);
+            renderEditorItemsList();
+        }
+
+        function saveConfiguration() {
+            currentConfig.judul = document.getElementById('editTitle').value;
+            currentConfig.pesanGagal = document.getElementById('editFailMessage').value;
+            currentConfig.nomorWA = document.getElementById('editWA').value;
+            currentConfig.musicUrl = document.getElementById('editMusicUrl').value;
+
+            localStorage.setItem('gacha_config', JSON.stringify(currentConfig));
+            takenBalls.clear();
+            generateNeatPilePositions();
+            initAudioPlayer();
+            initApp();
+            closeModal('editorModal');
+            alert("Pengaturan berhasil disimpan!");
+        }
+
+        function resetToDefaultConfig() {
+            if (confirm("Apakah Anda yakin ingin mengembalikan pengaturan ke awal?")) {
+                localStorage.removeItem('gacha_config');
+                currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+                takenBalls.clear();
+                generateNeatPilePositions();
+                initAudioPlayer();
+                initApp();
+                closeModal('editorModal');
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
